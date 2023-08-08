@@ -1,10 +1,21 @@
 package cmd
 
 import (
+	"os"
+	"strconv"
+
+	"github.com/joho/godotenv"
 	"github.com/lakhansamani/create-go-graphql-server/internal/server"
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
+)
+
+const (
+	// EnvPath is the path to the .env file
+	envPath = ".env"
+	// portEnvKey is the key for the port env variable
+	portEnvKey = "PORT"
 )
 
 var (
@@ -32,11 +43,19 @@ func SetVersion(version, build string) {
 }
 
 func init() {
+	// Load env variables from .env if present
+	godotenv.Load(envPath)
+	// Setup flags
 	f := RootCmd.Flags()
+	port := os.Getenv(portEnvKey)
+	if port == "" {
+		port = "3000"
+	}
+	portInt, _ := strconv.ParseInt(port, 0, 8)
 	// Logging flags
 	f.StringVar(&rootArgs.logLevel, "log-level", "debug", "Minimum log level")
 	// Server flags
-	f.IntVar(&rootArgs.server.Port, "http-port", 3000, "Port to listen on for HTTP requests")
+	f.IntVar(&rootArgs.server.Port, "http-port", int(portInt), "Port to listen on for HTTP requests")
 }
 
 func runRootCmd(cmd *cobra.Command, args []string) {
